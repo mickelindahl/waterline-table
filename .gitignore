@@ -10,3 +10,6 @@ package-lock.json
 No db stuff
 .tmp
 
+#No modules
+node_modules
+
