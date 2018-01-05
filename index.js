@@ -24,7 +24,7 @@ async function create(options) {
 
     Joi.assert(options, schema.single, "Bad create options for waterline-table");
 
-    assert(options.collections, options.table);
+    helpers.assert(options.collections, options.table);
 
     return helpers.create(options.collections, options.datastores, [options.table])
 
@@ -61,7 +61,7 @@ async function drop(options) {
 
     Joi.assert(options, schema.single, "Bad drop options for waterline-table");
 
-    assert(options.collections, options.table);
+    helpers.assert(options.collections, options.table);
 
     return helpers.drop(options.collections, options.datastores, [options.table])
 
