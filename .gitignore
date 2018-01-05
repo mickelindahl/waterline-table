@@ -1,0 +1,12 @@
+# No editor stuff
+.idea
+
+# Npm stuff
+package-lock.json
+
+# No env
+.env
+
+No db stuff
+.tmp
+

@@ -1,0 +1,41 @@
+{
+  "name": "waterline-table",
+  "version": "0.0.1",
+  "description": "Library for creating and dropping tables using sails and waterline ",
+  "main": "index.js",
+  "scripts": {
+    "test": "lab test/index.js",
+    "test-locally": "./node_modules/.bin/lab -l -m 50000 test/index.js",
+    "test-cov-html": "./node_modules/.bin/lab -m 20000 -l -r html -o test/coverage.html test/index.js",
+    "jsdoc-to-markdown": "jsdoc2md --template README.hbs --files index.js > README.md"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/mickelindahl/waterline-table.git"
+  },
+  "keywords": [
+    "waterline",
+    "sails",
+    "table",
+    "create",
+    "drop"
+  ],
+  "author": "Mikael Lindahl",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mickelindahl/waterline-table/issues"
+  },
+  "homepage": "https://github.com/mickelindahl/waterline-table#readme",
+  "devDependencies": {
+    "code": "^5.1.2",
+    "jsdoc-to-markdown": "3.1.0-0",
+    "lab": "^15.1.2",
+    "waterline": "^0.13.1-9",
+    "sails-disk": "^1.0.0-12",
+    "sails-postgresql": "^1.0.0-12"
+  },
+  "dependencies": {
+    "dotenv": "^4.0.0",
+    "joi": "^13.1.0"
+  }
+}

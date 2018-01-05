@@ -1,0 +1,63 @@
+# Waterline table
+Library for creating and dropping tables using sails and waterline
+
+## Install
+npm install --save waterline-table
+
+## Usage
+```JavaScript
+
+    const wt = require('waterline-table');
+    const Waterline=require('waterline');
+
+    const orm = new Waterline();
+
+    let model = {
+        identity: 'test',
+        attributes: {
+            id: {type: 'number', autoMigrations: {autoIncrement: true, columnType: 'INTEGER'}},
+            text: {type: 'string'},
+        },
+        primaryKey: 'id'
+    };
+    
+    orm.registerModel(Waterline.Collection.extend(model));
+
+    const datastores = {
+            default: {
+                adapter: 'myAdapter',
+            }
+        };
+    
+    const adapters = {
+        myAdapter: require('sails-disk')
+    };
+    
+    let config = {
+        adapters: adapters,
+        datastores: datastores
+    };
+    
+    orm.initialize(config, function (err, data) {
+            if (err) throw err;
+
+            let options = result.data;
+            options.table = 'test';
+
+            wt.create(options)
+
+        })
+```
+## API
+{{>all-docs~}}
+
+## Tests
+
+npm test
+
+## Contributing
+
+Feel free to submit issues and pull request on bugs or feature request.
+
+In lieu of a formal styleguide, take care to maintain the existing coding style.
+Add unit tests for any new or changed functionality.

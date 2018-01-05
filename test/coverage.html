@@ -1,0 +1,2170 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Tests &amp; Coverage</title>
+    <script>
+      headings = [];
+    
+      onload = function () {
+          headings = document.querySelectorAll('h2');
+          reset();
+      };
+    
+      onscroll = function (e) {
+          var heading = find(window.scrollY);
+          if (!heading) {
+            var current = document.querySelector('#menu a.active');
+            if (current) {
+              current.className = '';
+            }
+            return;
+          }
+          var links = document.querySelectorAll('#menu a')
+                  , link;
+    
+          for (var i = 0, len = links.length; i < len; ++i) {
+              link = links[i];
+              link.className = link.getAttribute('href') == '#' + heading.id ? 'active' : '';
+          }
+      };
+    
+      function find (y) {
+          var i = headings.length
+                  , heading;
+    
+          while (i--) {
+              heading = headings[i];
+              if (y >= heading.offsetTop) {
+                  return heading;
+              }
+          }
+      }
+    
+      function toggle (className) {
+    
+          var elements = document.getElementsByClassName(className);
+    
+          for (var i = 0, il = elements.length; i < il; ++i) {
+              var element = elements[i];
+    
+              if (element.classList.contains('hide')) {
+                  element.classList.remove('hide');
+                  element.classList.add('show');
+              }
+              else {
+                  element.classList.remove('show');
+                  element.classList.add('hide');
+              }
+          };
+      }
+    
+      function reset () {
+    
+          var shownElements = document.getElementsByClassName('show');
+          var filterElements = document.querySelectorAll('input[type=checkbox]');
+    
+          for (var i = 0, il = filterElements.length; i < il; ++i) {
+              filterElements[i].checked = false;
+          }
+    
+          // Check any filters with visible elements
+          for (i = 0, il = shownElements.length; i < il; ++i) {
+              var shownElement = shownElements[i];
+              var classNames = shownElement.className.split(' ');
+              for (var ci = 0, cl = classNames.length; ci < cl; ++ci){
+                  var element = document.getElementById('show-' + classNames[ci]);
+                  if (element) {
+                      element.checked = true;
+                  }
+              }
+          }
+      };
+    
+      function filter (element) {
+    
+          toggle(element.value);
+          reset();
+      }
+    </script>
+    <style>
+        body {
+            font: 14px/1.6 Helvetica, Arial, sans-serif;
+            margin: 0;
+            color: #2c2c2c;
+        }
+    
+        #tests, #coverage, #linting {
+            padding: 60px;
+        }
+    
+        h1 a:hover {
+            text-decoration: none;
+        }
+    
+        a[href^="#"],
+        a[href^="#"]:visited {
+            color: inherit;
+            text-decoration: none;
+        }
+    
+        h2 {
+            width: 80%;
+            margin-top: 80px;
+            margin-bottom: 0;
+            font-weight: 100;
+            letter-spacing: 1px;
+        }
+    
+        ul {
+            margin-top: 20px;
+            padding: 0 15px;
+            width: 100%;
+        }
+    
+        ul li {
+            float: left;
+            width: 40%;
+            margin-top: 5px;
+            margin-right: 60px;
+            list-style: none;
+            padding: 5px 0;
+            font-size: 12px;
+        }
+    
+        #menu {
+            position: fixed;
+            font-size: 12px;
+            overflow-y: auto;
+            top: 0;
+            right: 0;
+            margin: 0;
+            height: 100%;
+            padding: 15px 15px;
+            border-left: 1px solid #eee;
+            background-color: #666;
+            z-index: 1;
+        }
+    
+        #menu::after {
+            display: block;
+            content: '';
+            padding-top: 80px;
+        }
+    
+        #menu li a {
+            display: block;
+            color: white;
+            padding: 0 5px 0 35px;
+            transition: background 300ms;
+            text-decoration: none;
+        }
+    
+        #menu li {
+            position: relative;
+            list-style: none;
+        }
+    
+        #menu a:hover,
+        #menu a.active {
+            text-decoration: none;
+            background: rgba(255, 255, 255, .4);
+        }
+    
+        #menu li:hover .cov {
+            opacity: 1;
+        }
+    
+        #menu li .dirname {
+            opacity: .60;
+            padding-right: 2px;
+        }
+    
+        #menu li .basename {
+            opacity: 1;
+        }
+    
+        #menu .cov, #menu .lint {
+            background: rgba(0, 0, 0, .3);
+            position: absolute;
+            top: 0;
+            font-size: 9px;
+            text-align: center;
+            opacity: .8;
+            width: 22px;
+            border-radius: 10px;
+            padding: 2px 3px;
+        }
+    
+        #files .stats:nth-child(2n):not(.hide) {
+            display: inline-block;
+            margin-top: 15px;
+            border: 1px solid #eee;
+            padding: 10px;
+            border-radius: 5px;
+        }
+    
+        .stats div {
+            float: left;
+            padding: 0 5px;
+        }
+    
+        .stats::after {
+            display: block;
+            content: '';
+            clear: both;
+        }
+    
+        .stats .sloc::after {
+            content: ' SLOC';
+            color: #b6b6b6;
+        }
+    
+        .stats .percentage::after {
+            content: ' coverage';
+            color: #b6b6b6;
+        }
+    
+        .stats .hits::before {
+            content: '(';
+            color: #b6b6b6;
+        }
+    
+        .stats .hits::after {
+            content: ' Covered';
+            color: #b6b6b6;
+        }
+    
+        .stats .misses::after {
+            content: ' Not Covered)';
+            color: #b6b6b6;
+        }
+    
+        .stats .failures::after {
+            content: ' Failures';
+            color: #b6b6b6;
+        }
+    
+        .stats .skipped::after {
+            content: ' Skipped';
+            color: #b6b6b6;
+        }
+    
+        .stats .test-count::after {
+            content: ' Tests';
+            color: #b6b6b6;
+        }
+    
+        .stats .duration::before {
+            content: '(';
+            color: #b6b6b6;
+        }
+    
+        .stats .duration::after {
+            content: ' ms)';
+            color: #b6b6b6;
+        }
+    
+        .high {
+            color: #00d4b4;
+        }
+    
+        .medium {
+            color: #e87d0d;
+        }
+    
+        .low {
+            color: #d4081a;
+        }
+    
+        .terrible {
+            color: #d4081a;
+            font-weight: bold;
+        }
+    
+        #files table {
+            width: 80%;
+            margin-top: 10px;
+            border-collapse: collapse;
+            border: 1px solid #cbcbcb;
+            color: #363636;
+            border-radius: 3px;
+        }
+    
+        #files thead {
+            display: none;
+        }
+    
+        table td.line,
+        table td.lint,
+        table td.hits,
+        table td.original-line {
+            width: 20px;
+            background: #eaeaea;
+            text-align: right;
+            font-size: 11px;
+            padding: 0 10px;
+            color: #949494;
+            white-space: nowrap;
+        }
+    
+        table td.hits {
+            width: 10px;
+            padding: 2px 5px;
+            color: rgba(0, 0, 0, .2);
+            background: #f0f0f0;
+        }
+    
+        table td.lint.empty {
+            width: 0;
+            padding: 0;
+        }
+    
+        table td.lint > span {
+            border-radius: 50%;
+            width: 8px;
+            height: 8px;
+            display: inline-block;
+            vertical-align: baseline;
+        }
+    
+        table td.lint .errors {
+            background-color: red;
+        }
+    
+        table td.lint .warnings {
+            background-color: orange;
+        }
+    
+        tr.miss td.line,
+        tr.miss td.hits {
+            background: #e6c3c7;
+        }
+    
+        tr.miss td {
+            background: #f8d5d8;
+        }
+    
+        td.source {
+            padding-left: 15px;
+            line-height: 15px;
+            white-space: pre;
+            font: 12px monaco, monospace;
+        }
+    
+        td.source div {
+            display: inline-block;
+        }
+    
+        td.source div.true {
+            background: #bae8bf;
+        }
+    
+        td.source div.false {
+            background: #e8e5ba;
+        }
+    
+        td.source div.never {
+            background: #f8d5d8;
+        }
+    
+        #tests table {
+            width: 80%;
+            margin-top: 10px;
+            border-collapse: collapse;
+            border: 1px solid #cbcbcb;
+            color: #363636;
+            border-radius: 3px;
+        }
+    
+        #tests thead {
+            background: #F5F5F5;
+        }
+    
+        #tests tr {
+            border: 1px solid #ccc;
+        }
+    
+        #tests td {
+            padding-left: 8px;
+            vertical-align: top;
+        }
+    
+        #tests .success:nth-child(2n) {
+            background: #F5F5F5;
+        }
+    
+        #tests .failure {
+            background: #FF9E9E;
+        }
+    
+        #tests table .skipped {
+            background: #AA82FF;
+        }
+    
+        #tests .success {
+            color: #949494;
+        }
+    
+        #tests .failure .test-title {
+            font-weight: bold;
+            margin-top: 5px;
+        }
+    
+        #tests .stack {
+            margin-top: 4px;
+            padding-left: 15px;
+            margin-bottom: 12px;
+            font: 12px monaco, monospace;
+            white-space: pre;
+            line-height: 15px;
+        }
+    
+        .hide {
+            display: none;
+        }
+    
+        .show {
+            display: inherit;
+        }
+    
+        #tests table .show {
+            display: table-row;
+        }
+    
+        [data-tooltip] {
+            position: relative;
+        }
+    
+        [data-tooltip]:hover:before {
+            border: solid;
+            border-color: #333 transparent;
+            border-width: 6px 6px 0 6px;
+            bottom: 20px;
+            content: "";
+            left: 0;
+            position: absolute;
+            z-index: 99;
+        }
+    
+        [data-tooltip]:hover:after {
+            background: #333;
+            background: rgba(0, 0, 0, .8);
+            border-radius: 5px;
+            bottom: 26px;
+            color: #fff;
+            left: -10px;
+            padding: 5px 15px;
+            position: absolute;
+            z-index: 98;
+            content: attr(data-tooltip);
+            white-space: pre;
+            text-align: left;
+        }
+    
+        .line[data-tooltip]:hover:after {
+            content: "Line number";
+        }
+    
+        .hits[data-tooltip]:hover:after {
+            content: "Number of hits";
+        }
+    
+        .miss .source[data-tooltip]:hover:after {
+            content: "Missed line";
+        }
+    
+        .miss.true[data-tooltip]:hover:after {
+            content: "Condition always true";
+        }
+    
+        .miss.false[data-tooltip]:hover:after {
+            content: "Condition always false";
+        }
+    
+        .miss.never[data-tooltip]:hover:after {
+            content: "Statement never reached";
+        }
+    
+        .lint .errors[data-tooltip]:hover:after {
+            content: "Linting errors:\A" attr(data-tooltip);
+        }
+    
+        .lint .warnings[data-tooltip]:hover:after {
+            content: "Linting warnings:\A" attr(data-tooltip);
+        }
+    
+        .original-line[data-tooltip]:hover:after {
+            content: "Original line in file " attr(data-tooltip);
+        }
+    
+        #filters {
+            width: 75%;
+            margin-top: 25px;
+        }
+    
+        #filters label {
+            margin-right: 10px;
+        }
+    
+        .lint-stats .lint-errors::after {
+            content: ' linting errors';
+            color: #b6b6b6;
+        }
+    
+        .lint-stats .lint-warnings::after {
+            content: ' linting warnings';
+            color: #b6b6b6;
+        }
+    
+        .lint-entry {
+            color: #b6b6b6;
+            float: none;
+            padding: 0;
+        }
+    
+        .lint-entry .level-ERROR {
+            color: #d4081a;
+        }
+    
+        .lint-entry .level-WARNING {
+            color: #e87d0d;
+        }
+    </style>
+  </head>
+  <body>
+    <div id="menu">
+        <li><a href="#tests">Test Report</a></li>
+        <li><a href="#coverage">Coverage Report</a></li>
+        <li class="">
+            <span class="cov high">94.69</span>
+            <a href="#index.js"><span class="basename">index.js</span></a>
+        </li>
+        <li class="">
+            <span class="cov high">100</span>
+            <a href="#lib/schema.js"><span class="dirname">lib/</span><span class="basename">schema.js</span></a>
+        </li>
+        <li><a href="#linting">Linting Report</a></li>
+    </div>
+    <div id="tests">
+      <h1>Test Report</h1>
+      <div class="stats high">
+          <div class="failures">0</div>
+          <div class="skipped">0</div>
+          <div class="test-count">1</div>
+          <div class="duration">126</div>
+      </div>
+      <div id="filters">
+          <input type="checkbox" checked="" onchange="filter(this)" value="success" id="show-success">
+          <label for="show-success">Show Success</label>
+          <input type="checkbox" checked="" onchange="filter(this)" value="failure" id="show-failure">
+          <label for="show-failure">Show Failure</label>
+          <br>
+          <input type="checkbox" checked="" onchange="filter(this)" value="Waterline_table" id="show-Waterline_table">
+          <label for="show-Waterline_table">Waterline table</label>
+      </div>
+      <table>
+          <thead>
+          <tr>
+              <th>ID</th>
+              <th>Title</th>
+              <th>Duration (ms)</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr class="show Waterline_table success">
+              <td class="test-id">1</td>
+              <td class="test-title">Waterline table Disk create and drop
+                  
+              </td>
+              <td class="test-duration">124</td>
+          </tr>
+          </tbody>
+      </table>
+    
+    </div>    <div id="coverage">
+        <h1>Code Coverage Report</h1>
+        <div class="stats high">
+            <div class="percentage">95.42%</div>
+            <div class="sloc">131</div>
+            <div class="hits">125</div>
+            <div class="misses">6</div>
+        </div>
+        <div id="filters">
+          <input type="checkbox" checked="" onchange="filter(this)" value="generated" id="show-generated">
+          <label for="show-generated">Show generated files</label>
+        </div>
+        <div id="files">
+            <div class="file ">
+                <h2 id="index.js">index.js </h2>
+                <div class="stats high">
+                    <div class="percentage">94.69%</div>
+                    <div class="sloc">113</div>
+                    <div class="hits">107</div>
+                    <div class="misses">6</div>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Line</th>
+                            <th>Lint</th>
+                            <th>Hits</th>
+                            <th>Source</th>
+                            
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr id="index.js__1" class="hit">
+                          <td class="line" data-tooltip>1</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">/**</td>
+                          
+                        </tr>            <tr id="index.js__2" class="hit">
+                          <td class="line" data-tooltip>2</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"> *Created by Mikael Lindahl on 2018-01-05</td>
+                          
+                        </tr>            <tr id="index.js__3" class="hit">
+                          <td class="line" data-tooltip>3</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"> */</td>
+                          
+                        </tr>            <tr id="index.js__4" class="hit">
+                          <td class="line" data-tooltip>4</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__5" class="hit">
+                          <td class="line" data-tooltip>5</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">&quot;use strict&quot;;</td>
+                          
+                        </tr>            <tr id="index.js__6" class="hit">
+                          <td class="line" data-tooltip>6</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__7" class="hit">
+                          <td class="line" data-tooltip>7</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__8" class="hit">
+                          <td class="line" data-tooltip>8</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">const Joi &#x3D; require(&#x27;joi&#x27;);</td>
+                          
+                        </tr>            <tr id="index.js__9" class="hit">
+                          <td class="line" data-tooltip>9</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">const schema &#x3D; require(&#x27;./lib/schema&#x27;);</td>
+                          
+                        </tr>            <tr id="index.js__10" class="hit">
+                          <td class="line" data-tooltip>10</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__11" class="hit">
+                          <td class="line" data-tooltip>11</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">//DB Type conversion type -&gt; columnType</td>
+                          
+                        </tr>            <tr id="index.js__12" class="hit">
+                          <td class="line" data-tooltip>12</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">const TYPES &#x3D; {</td>
+                          
+                        </tr>            <tr id="index.js__13" class="hit">
+                          <td class="line" data-tooltip>13</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    number: &#x27;INTEGER&#x27;,</td>
+                          
+                        </tr>            <tr id="index.js__14" class="hit">
+                          <td class="line" data-tooltip>14</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    string: &#x27;TEXT&#x27;,</td>
+                          
+                        </tr>            <tr id="index.js__15" class="hit">
+                          <td class="line" data-tooltip>15</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    boolean: &#x27;BOOLEAN&#x27;,</td>
+                          
+                        </tr>            <tr id="index.js__16" class="hit">
+                          <td class="line" data-tooltip>16</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    json: &#x27;JSON&#x27;</td>
+                          
+                        </tr>            <tr id="index.js__17" class="hit">
+                          <td class="line" data-tooltip>17</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">}</td>
+                          
+                        </tr>            <tr id="index.js__18" class="hit">
+                          <td class="line" data-tooltip>18</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__19" class="hit">
+                          <td class="line" data-tooltip>19</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">/**</td>
+                          
+                        </tr>            <tr id="index.js__20" class="hit">
+                          <td class="line" data-tooltip>20</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"> * Crete model definitions that cane to be used for defining tables</td>
+                          
+                        </tr>            <tr id="index.js__21" class="hit">
+                          <td class="line" data-tooltip>21</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"> * using &#x60;adapter.define&#x60; or dropping table with &#x60;adapter.drop&#x60;</td>
+                          
+                        </tr>            <tr id="index.js__22" class="hit">
+                          <td class="line" data-tooltip>22</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"> *</td>
+                          
+                        </tr>            <tr id="index.js__23" class="hit">
+                          <td class="line" data-tooltip>23</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"> * @param {object} waterline collections</td>
+                          
+                        </tr>            <tr id="index.js__24" class="hit">
+                          <td class="line" data-tooltip>24</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"> * @param {object} waterline datastores</td>
+                          
+                        </tr>            <tr id="index.js__25" class="hit">
+                          <td class="line" data-tooltip>25</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"> * @returns {object} model definitions by adapter</td>
+                          
+                        </tr>            <tr id="index.js__26" class="hit">
+                          <td class="line" data-tooltip>26</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"> */</td>
+                          
+                        </tr>            <tr id="index.js__27" class="hit">
+                          <td class="line" data-tooltip>27</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">function _createDefinitions(collections, datastores, tables) {</td>
+                          
+                        </tr>            <tr id="index.js__28" class="hit">
+                          <td class="line" data-tooltip>28</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__29" class="hit">
+                          <td class="line" data-tooltip>29</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    // Pull out model configuration</td>
+                          
+                        </tr>            <tr id="index.js__30" class="hit">
+                          <td class="line" data-tooltip>30</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>4</td>
+                          <td class="source">    let models &#x3D; {};</td>
+                          
+                        </tr>            <tr id="index.js__31" class="hit">
+                          <td class="line" data-tooltip>31</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>4</td>
+                          <td class="source">    for (let key in collections) {</td>
+                          
+                        </tr>            <tr id="index.js__32" class="hit">
+                          <td class="line" data-tooltip>32</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__33" class="hit">
+                          <td class="line" data-tooltip>33</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>12</td>
+                          <td class="source">        let model &#x3D; collections[key];</td>
+                          
+                        </tr>            <tr id="index.js__34" class="hit">
+                          <td class="line" data-tooltip>34</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__35" class="hit">
+                          <td class="line" data-tooltip>35</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__36" class="hit">
+                          <td class="line" data-tooltip>36</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>12</td>
+                          <td class="source">        if ((model.identity &#x3D;&#x3D; &#x27;archive&#x27;)</td>
+                          
+                        </tr>            <tr id="index.js__37" class="hit">
+                          <td class="line" data-tooltip>37</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">            || (tables &amp;&amp; tables.indexOf(model.identity) &#x3D;&#x3D; -1)){</td>
+                          
+                        </tr>            <tr id="index.js__38" class="hit">
+                          <td class="line" data-tooltip>38</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__39" class="hit">
+                          <td class="line" data-tooltip>39</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>6</td>
+                          <td class="source">            continue</td>
+                          
+                        </tr>            <tr id="index.js__40" class="hit">
+                          <td class="line" data-tooltip>40</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        }</td>
+                          
+                        </tr>            <tr id="index.js__41" class="hit">
+                          <td class="line" data-tooltip>41</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__42" class="hit">
+                          <td class="line" data-tooltip>42</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>6</td>
+                          <td class="source">        models[model.identity] &#x3D; {</td>
+                          
+                        </tr>            <tr id="index.js__43" class="hit">
+                          <td class="line" data-tooltip>43</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">            attributes: model.attributes,</td>
+                          
+                        </tr>            <tr id="index.js__44" class="hit">
+                          <td class="line" data-tooltip>44</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">            datastore: model.datastore,</td>
+                          
+                        </tr>            <tr id="index.js__45" class="hit">
+                          <td class="line" data-tooltip>45</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">            primaryKey: model.primaryKey</td>
+                          
+                        </tr>            <tr id="index.js__46" class="hit">
+                          <td class="line" data-tooltip>46</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__47" class="hit">
+                          <td class="line" data-tooltip>47</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        }</td>
+                          
+                        </tr>            <tr id="index.js__48" class="hit">
+                          <td class="line" data-tooltip>48</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__49" class="hit">
+                          <td class="line" data-tooltip>49</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    }</td>
+                          
+                        </tr>            <tr id="index.js__50" class="hit">
+                          <td class="line" data-tooltip>50</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__51" class="hit">
+                          <td class="line" data-tooltip>51</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    // Create model definitions by adapter</td>
+                          
+                        </tr>            <tr id="index.js__52" class="hit">
+                          <td class="line" data-tooltip>52</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>4</td>
+                          <td class="source">    let definitions &#x3D; [];</td>
+                          
+                        </tr>            <tr id="index.js__53" class="hit">
+                          <td class="line" data-tooltip>53</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>4</td>
+                          <td class="source">    for (let table in models) {</td>
+                          
+                        </tr>            <tr id="index.js__54" class="hit">
+                          <td class="line" data-tooltip>54</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__55" class="hit">
+                          <td class="line" data-tooltip>55</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>6</td>
+                          <td class="source">        let model &#x3D; models[table];</td>
+                          
+                        </tr>            <tr id="index.js__56" class="hit">
+                          <td class="line" data-tooltip>56</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>6</td>
+                          <td class="source">        let adapter &#x3D; datastores[model.datastore].adapter;</td>
+                          
+                        </tr>            <tr id="index.js__57" class="hit">
+                          <td class="line" data-tooltip>57</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__58" class="hit">
+                          <td class="line" data-tooltip>58</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>6</td>
+                          <td class="source">        let definition &#x3D; {</td>
+                          
+                        </tr>            <tr id="index.js__59" class="hit">
+                          <td class="line" data-tooltip>59</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">            config: JSON.parse(JSON.stringify(model.attributes)),</td>
+                          
+                        </tr>            <tr id="index.js__60" class="hit">
+                          <td class="line" data-tooltip>60</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">            datastore: model.datastore,</td>
+                          
+                        </tr>            <tr id="index.js__61" class="hit">
+                          <td class="line" data-tooltip>61</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">            adapter,</td>
+                          
+                        </tr>            <tr id="index.js__62" class="hit">
+                          <td class="line" data-tooltip>62</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">            table</td>
+                          
+                        </tr>            <tr id="index.js__63" class="hit">
+                          <td class="line" data-tooltip>63</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        }</td>
+                          
+                        </tr>            <tr id="index.js__64" class="hit">
+                          <td class="line" data-tooltip>64</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__65" class="hit">
+                          <td class="line" data-tooltip>65</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__66" class="hit">
+                          <td class="line" data-tooltip>66</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>6</td>
+                          <td class="source">        for (let key2 in model.attributes) {</td>
+                          
+                        </tr>            <tr id="index.js__67" class="hit">
+                          <td class="line" data-tooltip>67</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__68" class="hit">
+                          <td class="line" data-tooltip>68</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>20</td>
+                          <td class="source">            definition.config[key2].columnName &#x3D; key2;</td>
+                          
+                        </tr>            <tr id="index.js__69" class="hit">
+                          <td class="line" data-tooltip>69</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__70" class="hit">
+                          <td class="line" data-tooltip>70</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>20</td>
+                          <td class="source">            if (key2 &#x3D;&#x3D; model.primaryKey) {</td>
+                          
+                        </tr>            <tr id="index.js__71" class="hit">
+                          <td class="line" data-tooltip>71</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__72" class="hit">
+                          <td class="line" data-tooltip>72</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>6</td>
+                          <td class="source">                definition.config[key2].primaryKey &#x3D; true</td>
+                          
+                        </tr>            <tr id="index.js__73" class="hit">
+                          <td class="line" data-tooltip>73</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__74" class="hit">
+                          <td class="line" data-tooltip>74</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">            }</td>
+                          
+                        </tr>            <tr id="index.js__75" class="hit">
+                          <td class="line" data-tooltip>75</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__76" class="hit">
+                          <td class="line" data-tooltip>76</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>20</td>
+                          <td class="source">            if (model.attributes[key2].autoMigrations) {</td>
+                          
+                        </tr>            <tr id="index.js__77" class="hit">
+                          <td class="line" data-tooltip>77</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>18</td>
+                          <td class="source">                for (let key3 in model.attributes[key2].autoMigrations) {</td>
+                          
+                        </tr>            <tr id="index.js__78" class="hit">
+                          <td class="line" data-tooltip>78</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__79" class="hit">
+                          <td class="line" data-tooltip>79</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>24</td>
+                          <td class="source">                    let migration &#x3D; model.attributes[key2].autoMigrations[key3]</td>
+                          
+                        </tr>            <tr id="index.js__80" class="hit">
+                          <td class="line" data-tooltip>80</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>24</td>
+                          <td class="source">                    definition.config[key2][key3] &#x3D; migration</td>
+                          
+                        </tr>            <tr id="index.js__81" class="hit">
+                          <td class="line" data-tooltip>81</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__82" class="hit">
+                          <td class="line" data-tooltip>82</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__83" class="hit">
+                          <td class="line" data-tooltip>83</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">                }</td>
+                          
+                        </tr>            <tr id="index.js__84" class="hit">
+                          <td class="line" data-tooltip>84</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__85" class="hit">
+                          <td class="line" data-tooltip>85</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>18</td>
+                          <td class="source">                delete definition.config[key2].autoMigrations</td>
+                          
+                        </tr>            <tr id="index.js__86" class="hit">
+                          <td class="line" data-tooltip>86</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">            }</td>
+                          
+                        </tr>            <tr id="index.js__87" class="hit">
+                          <td class="line" data-tooltip>87</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__88" class="hit">
+                          <td class="line" data-tooltip>88</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>20</td>
+                          <td class="source">            if (!definition.config[key2].columnType) {</td>
+                          
+                        </tr>            <tr id="index.js__89" class="hit">
+                          <td class="line" data-tooltip>89</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__90" class="hit">
+                          <td class="line" data-tooltip>90</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>2</td>
+                          <td class="source">                let type &#x3D; definition.config[key2].type;</td>
+                          
+                        </tr>            <tr id="index.js__91" class="hit">
+                          <td class="line" data-tooltip>91</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__92" class="hit">
+                          <td class="line" data-tooltip>92</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>2</td>
+                          <td class="source">                definition.config[key2].columnType &#x3D; TYPES[type]</td>
+                          
+                        </tr>            <tr id="index.js__93" class="hit">
+                          <td class="line" data-tooltip>93</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__94" class="hit">
+                          <td class="line" data-tooltip>94</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__95" class="hit">
+                          <td class="line" data-tooltip>95</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">            }</td>
+                          
+                        </tr>            <tr id="index.js__96" class="hit">
+                          <td class="line" data-tooltip>96</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        }</td>
+                          
+                        </tr>            <tr id="index.js__97" class="hit">
+                          <td class="line" data-tooltip>97</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>6</td>
+                          <td class="source">        definitions.push(definition)</td>
+                          
+                        </tr>            <tr id="index.js__98" class="hit">
+                          <td class="line" data-tooltip>98</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    }</td>
+                          
+                        </tr>            <tr id="index.js__99" class="hit">
+                          <td class="line" data-tooltip>99</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>4</td>
+                          <td class="source">    return definitions</td>
+                          
+                        </tr>            <tr id="index.js__100" class="hit">
+                          <td class="line" data-tooltip>100</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">}</td>
+                          
+                        </tr>            <tr id="index.js__101" class="hit">
+                          <td class="line" data-tooltip>101</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__102" class="hit">
+                          <td class="line" data-tooltip>102</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">/**</td>
+                          
+                        </tr>            <tr id="index.js__103" class="hit">
+                          <td class="line" data-tooltip>103</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"> * Create tables using adapter define method</td>
+                          
+                        </tr>            <tr id="index.js__104" class="hit">
+                          <td class="line" data-tooltip>104</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"> *</td>
+                          
+                        </tr>            <tr id="index.js__105" class="hit">
+                          <td class="line" data-tooltip>105</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"> * @param {object} waterline collections</td>
+                          
+                        </tr>            <tr id="index.js__106" class="hit">
+                          <td class="line" data-tooltip>106</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"> * @param {object} waterline datastores</td>
+                          
+                        </tr>            <tr id="index.js__107" class="hit">
+                          <td class="line" data-tooltip>107</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"> * @returns {Promise.&lt;void&gt;}</td>
+                          
+                        </tr>            <tr id="index.js__108" class="hit">
+                          <td class="line" data-tooltip>108</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"> */</td>
+                          
+                        </tr>            <tr id="index.js__109" class="hit">
+                          <td class="line" data-tooltip>109</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">async function _create(collections, datastores, tables) {</td>
+                          
+                        </tr>            <tr id="index.js__110" class="hit">
+                          <td class="line" data-tooltip>110</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__111" class="hit">
+                          <td class="line" data-tooltip>111</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>2</td>
+                          <td class="source">    let definitions &#x3D; _createDefinitions(collections, datastores, tables);</td>
+                          
+                        </tr>            <tr id="index.js__112" class="hit">
+                          <td class="line" data-tooltip>112</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__113" class="hit">
+                          <td class="line" data-tooltip>113</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>2</td>
+                          <td class="source">    for (let i &#x3D; 0; i &lt; definitions.length; i++) {</td>
+                          
+                        </tr>            <tr id="index.js__114" class="hit">
+                          <td class="line" data-tooltip>114</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__115" class="hit">
+                          <td class="line" data-tooltip>115</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>3</td>
+                          <td class="source">        let d &#x3D; definitions[i]</td>
+                          
+                        </tr>            <tr id="index.js__116" class="hit">
+                          <td class="line" data-tooltip>116</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__117" class="hit">
+                          <td class="line" data-tooltip>117</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>3</td>
+                          <td class="source">        await new Promise((resolve, reject) &#x3D;&gt; {</td>
+                          
+                        </tr>            <tr id="index.js__118" class="hit">
+                          <td class="line" data-tooltip>118</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__119" class="hit">
+                          <td class="line" data-tooltip>119</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">            d.adapter.define(d.datastore, d.table, d.config, (err, res) &#x3D;&gt; {</td>
+                          
+                        </tr>            <tr id="index.js__120" class="hit">
+                          <td class="line" data-tooltip>120</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__121" class="chunks">
+                          <td class="line" data-tooltip>121</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"><div>                if (</div><div class="miss false" data-tooltip>err</div><div>) {</div></td>
+                          
+                        </tr>            <tr id="index.js__122" class="hit">
+                          <td class="line" data-tooltip>122</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__123" class="miss">
+                          <td class="line" data-tooltip>123</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source" data-tooltip>                    reject(err)</td>
+                          
+                        </tr>            <tr id="index.js__124" class="hit">
+                          <td class="line" data-tooltip>124</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__125" class="hit">
+                          <td class="line" data-tooltip>125</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">                }</td>
+                          
+                        </tr>            <tr id="index.js__126" class="hit">
+                          <td class="line" data-tooltip>126</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__127" class="hit">
+                          <td class="line" data-tooltip>127</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>3</td>
+                          <td class="source">                resolve()</td>
+                          
+                        </tr>            <tr id="index.js__128" class="hit">
+                          <td class="line" data-tooltip>128</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__129" class="hit">
+                          <td class="line" data-tooltip>129</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">            })</td>
+                          
+                        </tr>            <tr id="index.js__130" class="hit">
+                          <td class="line" data-tooltip>130</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        })</td>
+                          
+                        </tr>            <tr id="index.js__131" class="hit">
+                          <td class="line" data-tooltip>131</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    }</td>
+                          
+                        </tr>            <tr id="index.js__132" class="hit">
+                          <td class="line" data-tooltip>132</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__133" class="hit">
+                          <td class="line" data-tooltip>133</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>2</td>
+                          <td class="source">    return &quot;create &quot;+ definitions.length + &quot; ok&quot;</td>
+                          
+                        </tr>            <tr id="index.js__134" class="hit">
+                          <td class="line" data-tooltip>134</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">}</td>
+                          
+                        </tr>            <tr id="index.js__135" class="hit">
+                          <td class="line" data-tooltip>135</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__136" class="hit">
+                          <td class="line" data-tooltip>136</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">/**</td>
+                          
+                        </tr>            <tr id="index.js__137" class="hit">
+                          <td class="line" data-tooltip>137</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"> * Function to drop tables from database</td>
+                          
+                        </tr>            <tr id="index.js__138" class="hit">
+                          <td class="line" data-tooltip>138</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"> *</td>
+                          
+                        </tr>            <tr id="index.js__139" class="hit">
+                          <td class="line" data-tooltip>139</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"> * @param {object} waterline collections</td>
+                          
+                        </tr>            <tr id="index.js__140" class="hit">
+                          <td class="line" data-tooltip>140</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"> * @param {object} waterline datastores</td>
+                          
+                        </tr>            <tr id="index.js__141" class="hit">
+                          <td class="line" data-tooltip>141</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"> */</td>
+                          
+                        </tr>            <tr id="index.js__142" class="hit">
+                          <td class="line" data-tooltip>142</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">async function _drop(collections, datastores, tables) {</td>
+                          
+                        </tr>            <tr id="index.js__143" class="hit">
+                          <td class="line" data-tooltip>143</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__144" class="hit">
+                          <td class="line" data-tooltip>144</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>2</td>
+                          <td class="source">    let definitions &#x3D; _createDefinitions(collections, datastores, tables);</td>
+                          
+                        </tr>            <tr id="index.js__145" class="hit">
+                          <td class="line" data-tooltip>145</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__146" class="hit">
+                          <td class="line" data-tooltip>146</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>2</td>
+                          <td class="source">    for (let i &#x3D; 0; i &lt; definitions.length; i++) {</td>
+                          
+                        </tr>            <tr id="index.js__147" class="hit">
+                          <td class="line" data-tooltip>147</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__148" class="hit">
+                          <td class="line" data-tooltip>148</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>3</td>
+                          <td class="source">        let d &#x3D; definitions[i];</td>
+                          
+                        </tr>            <tr id="index.js__149" class="hit">
+                          <td class="line" data-tooltip>149</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__150" class="hit">
+                          <td class="line" data-tooltip>150</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>3</td>
+                          <td class="source">        await new Promise((resolve, reject) &#x3D;&gt; {</td>
+                          
+                        </tr>            <tr id="index.js__151" class="hit">
+                          <td class="line" data-tooltip>151</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__152" class="hit">
+                          <td class="line" data-tooltip>152</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">            d.adapter.drop(d.datastore, d.table, undefined, (err, res) &#x3D;&gt; {</td>
+                          
+                        </tr>            <tr id="index.js__153" class="hit">
+                          <td class="line" data-tooltip>153</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__154" class="chunks">
+                          <td class="line" data-tooltip>154</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"><div>                if (</div><div class="miss false" data-tooltip>err</div><div>) {</div></td>
+                          
+                        </tr>            <tr id="index.js__155" class="hit">
+                          <td class="line" data-tooltip>155</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__156" class="miss">
+                          <td class="line" data-tooltip>156</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source" data-tooltip>                    reject(err)</td>
+                          
+                        </tr>            <tr id="index.js__157" class="hit">
+                          <td class="line" data-tooltip>157</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__158" class="hit">
+                          <td class="line" data-tooltip>158</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">                }</td>
+                          
+                        </tr>            <tr id="index.js__159" class="hit">
+                          <td class="line" data-tooltip>159</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__160" class="hit">
+                          <td class="line" data-tooltip>160</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>3</td>
+                          <td class="source">                resolve()</td>
+                          
+                        </tr>            <tr id="index.js__161" class="hit">
+                          <td class="line" data-tooltip>161</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__162" class="hit">
+                          <td class="line" data-tooltip>162</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">            })</td>
+                          
+                        </tr>            <tr id="index.js__163" class="hit">
+                          <td class="line" data-tooltip>163</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        })</td>
+                          
+                        </tr>            <tr id="index.js__164" class="hit">
+                          <td class="line" data-tooltip>164</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    }</td>
+                          
+                        </tr>            <tr id="index.js__165" class="hit">
+                          <td class="line" data-tooltip>165</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__166" class="hit">
+                          <td class="line" data-tooltip>166</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>2</td>
+                          <td class="source">    return &quot;drop &quot;+ definitions.length +&quot; ok&quot;</td>
+                          
+                        </tr>            <tr id="index.js__167" class="hit">
+                          <td class="line" data-tooltip>167</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">}</td>
+                          
+                        </tr>            <tr id="index.js__168" class="hit">
+                          <td class="line" data-tooltip>168</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__169" class="hit">
+                          <td class="line" data-tooltip>169</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">function assert(collections, table) {</td>
+                          
+                        </tr>            <tr id="index.js__170" class="hit">
+                          <td class="line" data-tooltip>170</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__171" class="chunks">
+                          <td class="line" data-tooltip>171</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"><div>    if (</div><div class="miss false" data-tooltip>!collections[table]</div><div>) {</div></td>
+                          
+                        </tr>            <tr id="index.js__172" class="hit">
+                          <td class="line" data-tooltip>172</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__173" class="miss">
+                          <td class="line" data-tooltip>173</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source" data-tooltip>        throw new Error(&#x27;Table does not exist!&#x27;)</td>
+                          
+                        </tr>            <tr id="index.js__174" class="hit">
+                          <td class="line" data-tooltip>174</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__175" class="hit">
+                          <td class="line" data-tooltip>175</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    }</td>
+                          
+                        </tr>            <tr id="index.js__176" class="hit">
+                          <td class="line" data-tooltip>176</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">}</td>
+                          
+                        </tr>            <tr id="index.js__177" class="hit">
+                          <td class="line" data-tooltip>177</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__178" class="hit">
+                          <td class="line" data-tooltip>178</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">async function create(options) {</td>
+                          
+                        </tr>            <tr id="index.js__179" class="hit">
+                          <td class="line" data-tooltip>179</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__180" class="hit">
+                          <td class="line" data-tooltip>180</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">    Joi.assert(options, schema.single, &quot;Bad create options for waterline-table&quot;);</td>
+                          
+                        </tr>            <tr id="index.js__181" class="hit">
+                          <td class="line" data-tooltip>181</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__182" class="hit">
+                          <td class="line" data-tooltip>182</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">    assert(options.collections, options.table);</td>
+                          
+                        </tr>            <tr id="index.js__183" class="hit">
+                          <td class="line" data-tooltip>183</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__184" class="hit">
+                          <td class="line" data-tooltip>184</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">    return _create(options.collections, options.datastores, [options.table])</td>
+                          
+                        </tr>            <tr id="index.js__185" class="hit">
+                          <td class="line" data-tooltip>185</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__186" class="hit">
+                          <td class="line" data-tooltip>186</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">}</td>
+                          
+                        </tr>            <tr id="index.js__187" class="hit">
+                          <td class="line" data-tooltip>187</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__188" class="hit">
+                          <td class="line" data-tooltip>188</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">async function createAll(options) {</td>
+                          
+                        </tr>            <tr id="index.js__189" class="hit">
+                          <td class="line" data-tooltip>189</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__190" class="hit">
+                          <td class="line" data-tooltip>190</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">    Joi.assert(options, schema.all, &quot;Bad createAll options for waterline-table&quot;);</td>
+                          
+                        </tr>            <tr id="index.js__191" class="hit">
+                          <td class="line" data-tooltip>191</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__192" class="hit">
+                          <td class="line" data-tooltip>192</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">    return _create(options.collections, options.datastores)</td>
+                          
+                        </tr>            <tr id="index.js__193" class="hit">
+                          <td class="line" data-tooltip>193</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__194" class="hit">
+                          <td class="line" data-tooltip>194</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">}</td>
+                          
+                        </tr>            <tr id="index.js__195" class="hit">
+                          <td class="line" data-tooltip>195</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__196" class="hit">
+                          <td class="line" data-tooltip>196</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__197" class="hit">
+                          <td class="line" data-tooltip>197</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">async function drop(options) {</td>
+                          
+                        </tr>            <tr id="index.js__198" class="hit">
+                          <td class="line" data-tooltip>198</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__199" class="hit">
+                          <td class="line" data-tooltip>199</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">    Joi.assert(options, schema.single, &quot;Bad drop options for waterline-table&quot;);</td>
+                          
+                        </tr>            <tr id="index.js__200" class="hit">
+                          <td class="line" data-tooltip>200</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__201" class="hit">
+                          <td class="line" data-tooltip>201</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">    assert(options.collections, options.table);</td>
+                          
+                        </tr>            <tr id="index.js__202" class="hit">
+                          <td class="line" data-tooltip>202</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__203" class="hit">
+                          <td class="line" data-tooltip>203</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">    return _drop(options.collections, options.datastores, [options.table])</td>
+                          
+                        </tr>            <tr id="index.js__204" class="hit">
+                          <td class="line" data-tooltip>204</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__205" class="hit">
+                          <td class="line" data-tooltip>205</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">}</td>
+                          
+                        </tr>            <tr id="index.js__206" class="hit">
+                          <td class="line" data-tooltip>206</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__207" class="hit">
+                          <td class="line" data-tooltip>207</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">async function dropAll(options) {</td>
+                          
+                        </tr>            <tr id="index.js__208" class="hit">
+                          <td class="line" data-tooltip>208</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__209" class="hit">
+                          <td class="line" data-tooltip>209</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">    Joi.assert(options, schema.all, &quot;Bad drop options for waterline-table&quot;);</td>
+                          
+                        </tr>            <tr id="index.js__210" class="hit">
+                          <td class="line" data-tooltip>210</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__211" class="hit">
+                          <td class="line" data-tooltip>211</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">    return _drop(options.collections, options.datastores)</td>
+                          
+                        </tr>            <tr id="index.js__212" class="hit">
+                          <td class="line" data-tooltip>212</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__213" class="hit">
+                          <td class="line" data-tooltip>213</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">}</td>
+                          
+                        </tr>            <tr id="index.js__214" class="hit">
+                          <td class="line" data-tooltip>214</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__215" class="hit">
+                          <td class="line" data-tooltip>215</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">module.exports &#x3D; {</td>
+                          
+                        </tr>            <tr id="index.js__216" class="hit">
+                          <td class="line" data-tooltip>216</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    create,</td>
+                          
+                        </tr>            <tr id="index.js__217" class="hit">
+                          <td class="line" data-tooltip>217</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    createAll,</td>
+                          
+                        </tr>            <tr id="index.js__218" class="hit">
+                          <td class="line" data-tooltip>218</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    drop,</td>
+                          
+                        </tr>            <tr id="index.js__219" class="hit">
+                          <td class="line" data-tooltip>219</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    dropAll</td>
+                          
+                        </tr>            <tr id="index.js__220" class="hit">
+                          <td class="line" data-tooltip>220</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">}</td>
+                          
+                        </tr>            <tr id="index.js__221" class="hit">
+                          <td class="line" data-tooltip>221</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="index.js__222" class="hit">
+                          <td class="line" data-tooltip>222</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>        </tbody>
+                </table>
+            </div>
+            <div class="file ">
+                <h2 id="lib/schema.js">lib/schema.js </h2>
+                <div class="stats high">
+                    <div class="percentage">100%</div>
+                    <div class="sloc">18</div>
+                    <div class="hits">18</div>
+                    <div class="misses">0</div>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Line</th>
+                            <th>Lint</th>
+                            <th>Hits</th>
+                            <th>Source</th>
+                            
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr id="lib/schema.js__1" class="hit">
+                          <td class="line" data-tooltip>1</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">&quot;Created by Mikael Lindahl on 2018-01-01&quot;</td>
+                          
+                        </tr>            <tr id="lib/schema.js__2" class="hit">
+                          <td class="line" data-tooltip>2</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="lib/schema.js__3" class="hit">
+                          <td class="line" data-tooltip>3</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">&quot;use strict&quot;</td>
+                          
+                        </tr>            <tr id="lib/schema.js__4" class="hit">
+                          <td class="line" data-tooltip>4</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="lib/schema.js__5" class="hit">
+                          <td class="line" data-tooltip>5</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">const Joi &#x3D; require(&#x27;joi&#x27;);</td>
+                          
+                        </tr>            <tr id="lib/schema.js__6" class="hit">
+                          <td class="line" data-tooltip>6</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="lib/schema.js__7" class="hit">
+                          <td class="line" data-tooltip>7</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">let data &#x3D; {</td>
+                          
+                        </tr>            <tr id="lib/schema.js__8" class="hit">
+                          <td class="line" data-tooltip>8</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="lib/schema.js__9" class="hit">
+                          <td class="line" data-tooltip>9</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    collections:Joi.object().required().description(&#x27;Waterline collection&#x27;),</td>
+                          
+                        </tr>            <tr id="lib/schema.js__10" class="hit">
+                          <td class="line" data-tooltip>10</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    datastores: Joi.object().required().description(&#x27;Waterline datastores&#x27;)</td>
+                          
+                        </tr>            <tr id="lib/schema.js__11" class="hit">
+                          <td class="line" data-tooltip>11</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="lib/schema.js__12" class="hit">
+                          <td class="line" data-tooltip>12</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">}</td>
+                          
+                        </tr>            <tr id="lib/schema.js__13" class="hit">
+                          <td class="line" data-tooltip>13</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="lib/schema.js__14" class="hit">
+                          <td class="line" data-tooltip>14</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="lib/schema.js__15" class="hit">
+                          <td class="line" data-tooltip>15</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">module.exports&#x3D;{</td>
+                          
+                        </tr>            <tr id="lib/schema.js__16" class="hit">
+                          <td class="line" data-tooltip>16</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">   all:Joi.object({</td>
+                          
+                        </tr>            <tr id="lib/schema.js__17" class="hit">
+                          <td class="line" data-tooltip>17</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="lib/schema.js__18" class="hit">
+                          <td class="line" data-tooltip>18</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">       collections:data.collections,</td>
+                          
+                        </tr>            <tr id="lib/schema.js__19" class="hit">
+                          <td class="line" data-tooltip>19</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">       datastores:data.datastores</td>
+                          
+                        </tr>            <tr id="lib/schema.js__20" class="hit">
+                          <td class="line" data-tooltip>20</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="lib/schema.js__21" class="hit">
+                          <td class="line" data-tooltip>21</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">   }),</td>
+                          
+                        </tr>            <tr id="lib/schema.js__22" class="hit">
+                          <td class="line" data-tooltip>22</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">   single:Joi.object({</td>
+                          
+                        </tr>            <tr id="lib/schema.js__23" class="hit">
+                          <td class="line" data-tooltip>23</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">       collections:data.collections,</td>
+                          
+                        </tr>            <tr id="lib/schema.js__24" class="hit">
+                          <td class="line" data-tooltip>24</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">       datastores:data.datastores,</td>
+                          
+                        </tr>            <tr id="lib/schema.js__25" class="hit">
+                          <td class="line" data-tooltip>25</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">       table:Joi.string().required().description(&#x27;Table name &#x27;)</td>
+                          
+                        </tr>            <tr id="lib/schema.js__26" class="hit">
+                          <td class="line" data-tooltip>26</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="lib/schema.js__27" class="hit">
+                          <td class="line" data-tooltip>27</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">   })</td>
+                          
+                        </tr>            <tr id="lib/schema.js__28" class="hit">
+                          <td class="line" data-tooltip>28</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">}  ;</td>
+                          
+                        </tr>            <tr id="lib/schema.js__29" class="hit">
+                          <td class="line" data-tooltip>29</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="lib/schema.js__30" class="hit">
+                          <td class="line" data-tooltip>30</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="lib/schema.js__31" class="hit">
+                          <td class="line" data-tooltip>31</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="lib/schema.js__32" class="hit">
+                          <td class="line" data-tooltip>32</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>    <div id="linting">
+        <h1>Linting Report</h1>
+            <span>Nothing to show here, linting is disabled.</span>
+    </div>  </body>
+</html>
