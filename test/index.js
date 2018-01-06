@@ -29,7 +29,7 @@ async function start(adapter_type) {
             id: {type: 'number', autoMigrations: {autoIncrement: true, columnType: 'INTEGER'}},
             text: {type: 'string', autoMigrations: {columnType: 'TEXT'}},
             created_at: {type: 'string', autoCreatedAt: true, autoMigrations: {columnType: 'TIMESTAMP'}},
-            update_at: {type: 'string', autoUpdatedAt: true, autoMigrations: {columnType: 'TIMESTAMP'}},
+            updated_at: {type: 'string', autoUpdatedAt: true, autoMigrations: {columnType: 'TIMESTAMP'}},
         },
         primaryKey: 'id'
     };

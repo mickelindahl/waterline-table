@@ -1,5 +1,14 @@
 # Waterline table
-Library for creating and dropping tables using sails and waterline
+Library for creating and dropping tables using sails and
+waterline. I created this library because when using
+waterline 0.1.3-9 together with sails-postgresql the
+tables were not automatically created at orm initialization.
+The library takes care of converting the model into a
+database definition that can be used to create a table.
+That includes making sure autoMigrations is put onto
+definition, primaryKey is set and columnType is defined
+if not included in autoMigrations. Hopefully future releases
+of waterline will take care of this.
 
 ## Install
 npm install --save waterline-table
@@ -16,6 +25,7 @@ npm install --save waterline-table
         identity: 'test',
         attributes: {
             id: {type: 'number', autoMigrations: {autoIncrement: true, columnType: 'INTEGER'}},
+            expired_at: {type: 'ref', autoMigrations: {columnType: 'TIMESTAMP'}},
             text: {type: 'string'},
         },
         primaryKey: 'id'
