@@ -1,6 +1,6 @@
 {
   "name": "waterline-table",
-  "version": "0.0.1",
+  "version": "0.0.4",
   "description": "Library for creating and dropping tables using sails and waterline ",
   "main": "index.js",
   "scripts": {
