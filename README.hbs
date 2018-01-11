@@ -1,7 +1,7 @@
 # Waterline table
 Library for creating and dropping tables using sails and
 waterline. I created this library because when using
-waterline 0.1.3-9 together with sails-postgresql the
+waterline 0.13.1-9 together with sails-postgresql the
 tables were not automatically created at orm initialization.
 The library takes care of converting the model into a
 database definition that can be used to create a table.
