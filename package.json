@@ -30,9 +30,10 @@
     "code": "^5.1.2",
     "jsdoc-to-markdown": "3.1.0-0",
     "lab": "^15.1.2",
-    "waterline": "^0.13.1-9",
     "sails-disk": "^1.0.0-12",
-    "sails-postgresql": "^1.0.0-12"
+    "sails-mysql": "^1.0.0",
+    "sails-postgresql": "^1.0.0-12",
+    "waterline": "^0.13.1-9"
   },
   "dependencies": {
     "dotenv": "^4.0.0",
