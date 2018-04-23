@@ -7,6 +7,7 @@
 const code = require("code");
 const Lab = require("lab");
 const pg = require('sails-postgresql');
+const mysql = require('sails-mysql');
 const disk = require('sails-disk');
 const Waterline = require('waterline');
 const wt = require('../index');
@@ -64,7 +65,17 @@ async function start(adapter_type) {
             }
         };
         adapter = pg
+    }else if (adapter_type == "mysql") {
 
+            datastores = {
+                test_datastore: {
+                    adapter: 'myAdapter',
+                    url: process.env.MYSQLL_URL,
+                    pool: false,
+                    ssl: false
+                }
+            };
+            adapter = mysql
     } else if (adapter_type == "disk") {
 
         datastores = {
@@ -154,4 +165,53 @@ lab.experiment("Waterline table", () => {
 
             })
         })
+
+    lab.test('Mysql create and drop',
+        async () => {
+
+            let options;
+
+            if (process.env.MYSQLL_URL){
+
+                console.log('skipping')
+                return
+
+            }
+
+            await start('mysql').then(result => {
+
+                _adapter = result.adapter;
+
+                options = result.data;
+                options.table = 'test_table_1';
+                return wt.create(options)
+
+            }).then(result => {
+
+                code.expect(result).to.equal('create 1 ok');
+
+                return wt.drop(options)
+
+            }).then(result => {
+
+                code.expect(result).to.equal('drop 1 ok');
+
+                delete options.table;
+
+                return wt.createAll(options)
+
+            }).then(result => {
+
+                code.expect(result).to.equal('create 2 ok');
+
+                return wt.dropAll(options)
+
+            }).then(result => {
+
+                code.expect(result).to.equal('drop 2 ok');
+
+            })
+        })
 });
+
+
